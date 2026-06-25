@@ -1,9 +1,14 @@
 import L from "leaflet";
+import { addRasterLayer } from "../map/rasterLayer.js";
 import { createMap } from "../map/initMap.js";
 import { addBasinLayer } from "../map/basinLayer.js";
 
 export async function initApp() {
   const map = createMap();
+  await addRasterLayer(
+    map,
+    "http://geoglows-v2.s3-us-west-2.amazonaws.com/hydrosos/cogs/1990-06.tif"
+  );
 
   const hydrobasins = await fetch(
     "/hydrobasins.geojson"
