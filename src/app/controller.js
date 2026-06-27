@@ -11,7 +11,7 @@ export async function initApp() {
 await addRasterLayer(map, tifUrl);
 
   const hydrobasins = await fetch(
-    "/hydrobasins.geojson"
+    "/simple_hydrobasins.geojson"
   ).then(r => r.json());
 
   addBasinLayer(map, hydrobasins, (feature) => {

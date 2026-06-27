@@ -9,6 +9,10 @@ html, body {
     height: 100vh;
     width: 100%;
   }
+
+  .leaflet-container {
+    background: #cfe8ff;
+  }
   
   /* Sidebar */
   #sidebar {
@@ -26,5 +30,5 @@ html, body {
   }
 
   #map {
-    background: red;
+    background: rgb(139, 197, 220);
   }

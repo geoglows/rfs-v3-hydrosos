@@ -4,7 +4,7 @@ export function addBasinLayer(map, geojson, onClick) {
     const layer = L.geoJSON(geojson, {
       style: {
         fillOpacity: 0,
-        color: "#333",
+        color: "#808080",
         weight: 1
       },
       onEachFeature: (feature, l) => {

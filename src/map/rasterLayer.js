@@ -15,13 +15,22 @@ export async function addRasterLayer(map, tifUrl) {
   console.log("Downloaded TIFF");
 
   const georaster = await parseGeoraster(arrayBuffer);
+  console.log(georaster);
 
   console.log("Parsed raster", georaster);
 
   const layer = new GeoRasterLayer({
     georaster,
-    opacity: 0.8,
-    resolution: 128
+    resolution: 128,
+    pixelValuesToColorFn: (values) => {
+      const [r, g, b] = values;
+  
+      if (r === 0 && g === 0 && b === 0) {
+        return null;
+      }
+  
+      return `rgb(${r},${g},${b})`;
+    }
   });
 
   layer.addTo(map);
