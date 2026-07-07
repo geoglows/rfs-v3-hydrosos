@@ -12,7 +12,7 @@ export function drawHydrograph(hydrographData) {
       }
     ],
     {
-      title: "Historical Daily Discharge",
+      title: {text: "Historical Daily Discharge"},
       xaxis: {
         title: "Date"
       },

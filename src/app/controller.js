@@ -5,8 +5,10 @@ import { findLatestTif } from "../utils/findLatestTif.js";
 import { fetchRetrospective } from "../data/fetchRetrospective.js";
 import { drawHydrograph } from "../plots/hydrograph.js";
 import { plotCumulativeVolume } from "../plots/cumVol.js";
-import { drawFDC } from "../plots/fdc.js";
 import { plotHydroSOSBands } from "../plots/hydroSOSbands.js";
+import { buildRecords } from "../utils/buildRecords.js";
+import { getHydroSOSData } from "../utils/getHydroSOSdata.js";
+import Plotly from "plotly.js-dist-min";
 
 export async function initApp() {
   const map = createMap();
@@ -22,6 +24,13 @@ document
     document
       .getElementById("basin-modal")
       .classList.add("hidden");
+
+    Plotly.purge("hydrograph");
+
+    Plotly.purge("cumulative-volume");
+
+    Plotly.purge("hydrosos-bands");
+
 
   });
 
@@ -59,9 +68,16 @@ try {
     }));
 
     drawHydrograph(hydrographData);
-    drawFDC(hydrographData);
     plotCumulativeVolume(data);
-    plotHydroSOSBands(data);
+    const records = buildRecords(data);
+
+const hydroSOSData =
+    getHydroSOSData(records);
+
+plotHydroSOSBands(
+    hydroSOSData.bands,
+    hydroSOSData.currentYearMonthly
+);
 
 }
 

@@ -35,7 +35,9 @@ export function computeHydroSOSBands(
 
             p75: percentile(values,75),
 
-            p90: percentile(values, 90)
+            p90: percentile(values, 90),
+
+            p95: percentile(values,95)
 
         });
     }

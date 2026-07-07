@@ -31,7 +31,15 @@ export function computeWaterYearCurves(records) {
 
             cumulative += record.volume;
 
-            days.push(record.waterYearDay);
+            days.push(
+                new Date(
+                    Date.UTC(
+                        record.date.getUTCMonth() >= 9 ? 2000 : 2001,
+                        record.date.getUTCMonth(),
+                        record.date.getUTCDate()
+                    )
+                )
+            );
             cumulativeVolume.push(cumulative);
 
         });
