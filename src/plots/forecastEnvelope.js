@@ -88,17 +88,31 @@ export function plotForecastEnvelope(data) {
 
             x: dailyBands.days,
         
+            y: dailyBands.minimum,
+        
+            mode: "lines",
+        
+            line: { width: 0 },
+        
+            showlegend: false,
+            
+            hoverinfo: "skip"
+        
+        });
+
+        traces.push({
+
+            x: dailyBands.days,
+        
             y: dailyBands.p10,
         
             mode: "lines",
         
-            fill: "tozeroy",
+            fill: "tonexty",
         
             fillcolor: "rgba(220,80,80,.12)",
         
-            line: { 
-                color: "red",
-                width: 0.5 },
+            line: { width: 0.5 },
         
             name: "Very Dry"
         
@@ -171,22 +185,21 @@ export function plotForecastEnvelope(data) {
         // Very Wet
         traces.push({
 
-    x: dailyBands.days,
-
-    y: dailyBands.p95,
-
-    mode: "lines",
-
-    fill: "tonexty",
-
-    fillcolor: "rgba(40,90,180,.12)",
-
-    line: { color: "blue",
-        width: 0.5 },
-
-    name: "Very Wet"
-
-});
+            x: dailyBands.days,
+        
+            y: dailyBands.maximum,
+        
+            mode: "lines",
+        
+            fill: "tonexty",
+        
+            fillcolor: "rgba(40,90,180,.12)",
+        
+            line: { width: 0.5 },
+        
+            name: "Very Wet"
+        
+        });
 
         // forecast envelope
 
@@ -204,7 +217,12 @@ export function plotForecastEnvelope(data) {
                 dash: "dash"
             },
         
-            showlegend: false
+            showlegend: false,
+
+            hovertemplate:
+        "%{x|%b %d}<br>" +
+        "%{y:.2f} billion m³" +
+        "<extra></extra>"
         
         });
 
@@ -224,7 +242,12 @@ export function plotForecastEnvelope(data) {
                 dash: "dash"
             },
         
-            name: "Historical Range"
+            name: "Historical Minimum",
+
+            hovertemplate:
+        "%{x|%b %d}<br>" +
+        "%{y:.2f} billion m³" +
+        "<extra></extra>"
         
         });
 
@@ -274,7 +297,9 @@ export function plotForecastEnvelope(data) {
         
                 color: "#1f77b4",
         
-                width: 4
+                width: 4,
+
+                dash: "dash"
         
             },
 

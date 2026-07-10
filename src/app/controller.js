@@ -18,29 +18,45 @@ export async function initApp() {
 
 await addRasterLayer(map, tifUrl);
 
-document
-  .getElementById("close-modal")
-  .addEventListener("click", () => {
+const modal =
+    document.getElementById("basin-modal");
 
-    document
-      .getElementById("basin-modal")
-      .classList.add("hidden");
+function closePanel() {
+
+    modal.classList.add("hidden");
+
+    document.getElementById("loading").style.display = "none";
 
     Plotly.purge("hydrograph");
-
     Plotly.purge("cumulative-volume");
-
     Plotly.purge("hydrosos-bands");
+    Plotly.purge("forecast-envelope");
 
+}
 
-    Plotly.purge("forecast-envelope")
+document
+    .getElementById("close-modal")
+    .addEventListener("click", closePanel);
 
+modal.addEventListener("click", (event) => {
 
-  });
+    // Only close if they clicked the dark overlay,
+    // not the panel itself.
+    if (event.target === modal) {
+
+        closePanel();
+
+    }
+
+});
 
   const hydrobasins = await fetch(
     "/hydrobasins_web.geojson"
   ).then(r => r.json());
+
+  const outletLookup = await fetch(
+    "/outlet_lookup.json"
+).then(r => r.json());
 
   addBasinLayer(map, hydrobasins, async (feature) => {
     document
@@ -48,20 +64,23 @@ document
     .classList.remove("hidden");
 
     const props = feature.properties;
+
+    const riverID =
+      outletLookup[props.HYBAS_ID].riverID;
   
     document.getElementById("basin-info").innerHTML = `
       <h3>Basin Information</h3>
       <p><strong>Hydrobasin ID:</strong> ${props.HYBAS_ID}</p>
-      <p><strong>Link Number:</strong> ${props.LINKNO}</p>
+      <p><strong>Outlet River ID:</strong> ${riverID}</p>
     `;
 
     document.getElementById("loading").style.display = "flex";
 
 try {
 
-    const data = await fetchRetrospective(props.LINKNO);
-
-    const riverID = data.metadata.river_id;
+  
+  const data =
+      await fetchRetrospective(riverID);
 
     const flowSeries = data[riverID];
     const dates = data.datetime;
