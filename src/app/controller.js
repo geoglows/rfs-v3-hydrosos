@@ -1,13 +1,13 @@
-import { addRasterLayer } from "../map/rasterLayer.js";
-import { createMap } from "../map/initMap.js";
-import { findLatestTif } from "../utils/findLatestTif.js";
-import { fetchRetrospective } from "../data/fetchRetrospective.js";
-import { plotCumulativeVolume } from "../plots/cumVol.js";
-import { plotHydroSOSBands } from "../plots/hydroSOSbands.js";
-import { plotForecastEnvelope } from "../plots/forecastEnvelope.js";
-import { buildRecords } from "../utils/buildRecords.js";
-import { getHydroSOSData } from "../utils/getHydroSOSdata.js";
-import {addBasinLayer,selectBasin} from "../map/basinLayer.js";
+import {addRasterLayer} from "../map/rasterLayer.js";
+import {createMap} from "../map/initMap.js";
+import {findLatestTif} from "../utils/findLatestTif.js";
+import {fetchRetrospective} from "../data/fetchRetrospective.js";
+import {plotCumulativeVolume} from "../plots/cumVol.js";
+import {plotHydroSOSBands} from "../plots/hydroSOSbands.js";
+import {plotForecastEnvelope} from "../plots/forecastEnvelope.js";
+import {buildRecords} from "../utils/buildRecords.js";
+import {getHydroSOSData} from "../utils/getHydroSOSdata.js";
+import {addBasinLayer, selectBasin} from "../map/basinLayer.js";
 import Plotly from "plotly.js-dist-min";
 
 export async function initApp() {
@@ -15,12 +15,11 @@ export async function initApp() {
   const tifUrl = await findLatestTif();
 
 
-await addRasterLayer(map, tifUrl);
+  await addRasterLayer(map, tifUrl);
 
-const modal =
-    document.getElementById("basin-modal");
+  const modal = document.getElementById("basin-modal");
 
-function closePanel() {
+  function closePanel() {
 
     modal.classList.add("hidden");
 
@@ -30,155 +29,138 @@ function closePanel() {
     Plotly.purge("hydrosos-bands");
     Plotly.purge("forecast-envelope");
 
-}
+  }
 
-document
+  document
     .getElementById("close-modal")
     .addEventListener("click", closePanel);
 
-modal.addEventListener("click", (event) => {
-
+  modal.addEventListener("click", (event) => {
     // Only close if they clicked the dark overlay,
     // not the panel itself.
-    if (event.target === modal) {
+    if (event.target === modal) closePanel();
+  });
 
-        closePanel();
-
-    }
-
-});
-
-  const hydrobasins = await fetch(
-    "/hydrobasins_web.geojson"
-  ).then(r => r.json());
-
-  const outletLookup = await fetch(
-    "/outlet_lookup.json"
-).then(r => r.json());
+  // Corrects the url builder so this could work in multiple environments
+  const base = import.meta.env.BASE_URL;
+  const hydrobasins = await fetch(`${base}hydrobasins_web.geojson`).then(r => r.json());
+  const outletLookup = await fetch(`${base}outlet_lookup.json`).then(r => r.json());
 
 // -------------------------------
 // Open a basin (used by BOTH clicks and search)
 // -------------------------------
 
-async function openBasin(feature) {
+  async function openBasin(feature) {
 
-  document
+    document
       .getElementById("basin-modal")
       .classList.remove("hidden");
 
-  const props = feature.properties;
+    const props = feature.properties;
 
-  const riverID =
+    const riverID =
       outletLookup[props.HYBAS_ID].riverID;
 
-  document.getElementById("basin-info").innerHTML = `
+    document.getElementById("basin-info").innerHTML = `
       <h3>Basin Information</h3>
       <p><strong>Hydrobasin ID:</strong> ${props.HYBAS_ID}</p>
       <p><strong>Outlet River ID:</strong> ${riverID}</p>
   `;
 
-  document.getElementById("loading").style.display = "flex";
+    document.getElementById("loading").style.display = "flex";
 
-  try {
+    try {
 
       const data =
-          await fetchRetrospective(riverID);
+        await fetchRetrospective(riverID);
 
       plotCumulativeVolume(data);
 
       const records =
-          buildRecords(data);
+        buildRecords(data);
 
       const hydroSOSData =
-          getHydroSOSData(records);
+        getHydroSOSData(records);
 
       plotHydroSOSBands(
-
-          hydroSOSData.bands,
-
-          hydroSOSData.currentYearMonthly
-
+        hydroSOSData.bands,
+        hydroSOSData.currentYearMonthly
       );
 
       plotForecastEnvelope(data);
 
-  }
-
-  catch (error) {
+    } catch (error) {
 
       console.error(error);
 
       alert("Unable to load basin data.");
 
-  }
-
-  finally {
+    } finally {
 
       document.getElementById("loading").style.display = "none";
 
-  }
+    }
 
-}
+  }
 
 
 // -------------------------------
 // Add basin layer
 // -------------------------------
 
-addBasinLayer(
-  map,
-  hydrobasins,
-  openBasin
-);
+  addBasinLayer(
+    map,
+    hydrobasins,
+    openBasin
+  );
 
 
 // -------------------------------
 // Search
 // -------------------------------
 
-const searchBox =
-  document.getElementById("basin-search");
+  const searchBox = document.getElementById("basin-search");
 
-const searchButton =
-  document.getElementById("search-button");
+  const searchButton = document.getElementById("search-button");
 
 
-function runSearch() {
+  function runSearch() {
 
-  const hybasID =
+    const hybasID =
       searchBox.value.trim();
 
-  const feature =
+    const feature =
       selectBasin(hybasID, map);
 
-  if (!feature) {
+    if (!feature) {
 
       alert("HYBAS_ID not found.");
 
       return;
 
+    }
+
+    openBasin(feature);
+
   }
 
-  openBasin(feature);
 
-}
-
-
-searchButton.addEventListener(
-  "click",
-  runSearch
-);
+  searchButton.addEventListener(
+    "click",
+    runSearch
+  );
 
 
-searchBox.addEventListener(
-  "keydown",
-  (event) => {
+  searchBox.addEventListener(
+    "keydown",
+    (event) => {
 
       if (event.key === "Enter") {
 
-          runSearch();
+        runSearch();
 
       }
 
-  }
-)};
+    }
+  )
+};
