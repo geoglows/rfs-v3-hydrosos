@@ -8,7 +8,7 @@ export function computeForecastEnvelope(
         return null;
     }
 
-    const days = forecastCurves[0].days;
+    const dates = forecastCurves[0].dates;
 
     const minimum = [];
     const p25 = [];
@@ -16,7 +16,7 @@ export function computeForecastEnvelope(
     const p75 = [];
     const maximum = [];
 
-    for (let i = 0; i < days.length; i++) {
+    for (let i = 0; i < dates.length; i++) {
 
         const values = forecastCurves
             .map(curve => curve.incrementalVolume[i])
@@ -36,28 +36,16 @@ export function computeForecastEnvelope(
         }
 
         minimum.push(values[0]);
-
-        p25.push(
-            percentile(values, 25)
-        );
-
-        median.push(
-            percentile(values, 50)
-        );
-
-        p75.push(
-            percentile(values, 75)
-        );
-
-        maximum.push(
-            values.at(-1)
-        );
+        p25.push(percentile(values, 25));
+        median.push(percentile(values, 50));
+        p75.push(percentile(values, 75));
+        maximum.push(values.at(-1));
 
     }
 
     return {
 
-        days,
+        dates,
 
         minimum,
 

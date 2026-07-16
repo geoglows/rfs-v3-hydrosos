@@ -1,52 +1,54 @@
+import { getRollingMonths } from "./getRollingMonths.js";
+
 export function computeCurrentYearMonthly(monthlyMeans) {
 
-    const currentYear =
-        new Date().getUTCFullYear();
+    const today = new Date();
 
-        const currentYearMonthly = [];
+    const currentYear = today.getUTCFullYear();
+    const currentMonth = today.getUTCMonth() + 1;
+    const currentDay = today.getUTCDate();
 
-        const today = new Date();
-        
-        const currentMonth = today.getUTCMonth() + 1;
-        const currentDay = today.getUTCDate();
-        
-        const daysInCurrentMonth = new Date(
-            Date.UTC(
-                today.getUTCFullYear(),
-                currentMonth,
-                0
-            )
-        ).getUTCDate();
-        
-        const halfwayPoint = daysInCurrentMonth / 2;
-        
-        for (let month = 1; month <= 12; month++) {
-        
-            // Future months stay blank
-            if (month > currentMonth) {
-        
-                currentYearMonthly.push(null);
-                continue;
-        
-            }
-        
-            // If we're in the current month but haven't reached halfway,
-            // don't plot it yet.
-            if (
-                month === currentMonth &&
-                currentDay < halfwayPoint
-            ) {
-        
-                currentYearMonthly.push(null);
-                continue;
-        
-            }
-        
-            currentYearMonthly.push(
-                monthlyMeans[currentYear]?.[month] ?? null
-            );
-        
+    const daysInCurrentMonth = new Date(
+        Date.UTC(currentYear, currentMonth, 0)
+    ).getUTCDate();
+
+    const halfwayPoint = daysInCurrentMonth / 2;
+
+    const rollingMonths = getRollingMonths();
+
+    const currentYearMonthly = [];
+
+    // The first 9 months are observed, the last 3 are future.
+    const observedMonths = rollingMonths.length - 3;
+
+    rollingMonths.forEach((month, index) => {
+
+        // Determine which calendar year this month belongs to.
+        const dataYear =
+            month > currentMonth
+                ? currentYear - 1
+                : currentYear;
+
+        // Leave the future 3 months blank.
+        if (index >= observedMonths) {
+            currentYearMonthly.push(null);
+            return;
         }
+
+        // Don't plot the current month until halfway through.
+        if (
+            month === currentMonth &&
+            currentDay < halfwayPoint
+        ) {
+            currentYearMonthly.push(null);
+            return;
+        }
+
+        currentYearMonthly.push(
+            monthlyMeans[dataYear]?.[month] ?? null
+        );
+
+    });
 
     return {
         currentYear,

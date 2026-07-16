@@ -6,18 +6,34 @@ export function plotHydroSOSBands(
     currentYearMonthly
 ) {
 
-    const months = [
+    const monthNames = [
         "Jan","Feb","Mar",
         "Apr","May","Jun",
         "Jul","Aug","Sep",
         "Oct","Nov","Dec"
     ];
+    
+    const months = bands.map(
+        b => monthNames[b.month - 1]
+    );
 
     const p10 = bands.map(b => b.p10);
     const p25 = bands.map(b => b.p25);
     const p75 = bands.map(b => b.p75);
     const p90 = bands.map(b => b.p90);
     const p99 = bands.map(b => b.p99);
+
+    console.table(
+        bands.map((b, i) => ({
+            month: b.month,
+            p10: b.p10,
+            p25: b.p25,
+            p75: b.p75,
+            p90: b.p90
+        }))
+    );
+    
+    console.log(currentYearMonthly);
 
     
     const traces = [];

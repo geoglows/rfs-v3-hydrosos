@@ -6,14 +6,37 @@ import { getCurrentWaterYearCurve } from "../utils/getCurrentWaterYearCurve.js";
 import { getHistoricalForecastCurves } from "../utils/getHistoricalForecastCurves.js";
 import { computeForecastEnvelope } from "../utils/computeForecastEnvelope.js";
 import { computeDailyPercentileBands } from "../utils/computeDailyPercentileBands.js";
+import { computeRollingWindowCurves } from "../utils/computeRollingWindowCurves.js";
 
 
 export function plotForecastEnvelope(data) {
 
     const records = buildRecords(data);
 
-    const curves =
-        computeWaterYearCurves(records);
+    const rollingCurves =
+    computeRollingWindowCurves(records);
+
+    const cumulativeCurves = rollingCurves.map(curve => {
+
+        let runningTotal = 0;
+    
+        return {
+    
+            year: curve.year,
+    
+            dates: curve.referenceDates,
+    
+            cumulativeVolume: curve.records.map(record => {
+    
+                runningTotal += record.volume;
+    
+                return runningTotal;
+    
+            })
+    
+        };
+    
+    });
 
     const today = new Date();
 
@@ -22,13 +45,16 @@ export function plotForecastEnvelope(data) {
         ? today.getUTCFullYear() + 1
         : today.getUTCFullYear();
 
-    const historicalCurves = curves
-    .filter(curve => curve.waterYear < currentWaterYear)
-    .sort((a, b) => a.waterYear - b.waterYear)
-    .slice(-30);
+        const historicalCurves =
+        cumulativeCurves
+            .filter(c => c.year < today.getUTCFullYear())
+            .sort((a,b) => a.year - b.year)
+            .slice(-30);
 
     const currentCurve =
-        getCurrentWaterYearCurve(curves);
+    cumulativeCurves.find(
+        c => c.year === today.getUTCFullYear()
+    );
 
         const historicalForecasts =
     getHistoricalForecastCurves(
@@ -48,7 +74,7 @@ export function plotForecastEnvelope(data) {
         currentCurve.cumulativeVolume.at(-1);
 
     const currentX =
-        currentCurve.days.at(-1);
+        currentCurve.dates.at(-1);
 
         const forecastMedian =
         forecast.median.map(
@@ -79,16 +105,37 @@ export function plotForecastEnvelope(data) {
 
         console.log(
             "Current endpoint:",
-            currentCurve.days.at(-1),
+            currentCurve.dates.at(-1),
             currentCurve.cumulativeVolume.at(-1)
         );
         
         console.log(
             "Forecast start:",
-            forecast.days[0],
+            forecast.dates[0],
             forecast.median[0]
         );
+        console.log("Current curve dates:", currentCurve.dates.slice(0,5), currentCurve.dates.at(-5));
 
+        console.log("Bands dates:", dailyBands.dates.slice(0,5), dailyBands.dates.at(-5));
+        
+        console.log("Forecast dates:", forecast.dates.slice(0,5), forecast.dates.at(-5));
+        
+        console.log("Historical forecast example:", historicalForecasts[0].dates.slice(0,5));
+
+        console.log(
+            currentCurve.dates.length,
+            currentCurve.cumulativeVolume.length
+        );
+        
+        console.log(
+            historicalForecasts[0].dates.length,
+            historicalForecasts[0].incrementalVolume.length
+        );
+        
+        console.log(
+            forecast.dates.length,
+            forecast.median.length
+        );
 
         // plot
 
@@ -98,7 +145,7 @@ export function plotForecastEnvelope(data) {
 
         traces.push({
 
-            x: dailyBands.days,
+            x: dailyBands.dates,
         
             y: dailyBands.minimum,
         
@@ -114,7 +161,7 @@ export function plotForecastEnvelope(data) {
 
         traces.push({
 
-            x: dailyBands.days,
+            x: dailyBands.dates,
         
             y: dailyBands.p10,
         
@@ -134,7 +181,7 @@ export function plotForecastEnvelope(data) {
         // Dry
         traces.push({
 
-            x: dailyBands.days,
+            x: dailyBands.dates,
         
             y: dailyBands.p25,
         
@@ -155,7 +202,7 @@ export function plotForecastEnvelope(data) {
     
         traces.push({
 
-            x: dailyBands.days,
+            x: dailyBands.dates,
         
             y: dailyBands.p75,
         
@@ -177,7 +224,7 @@ export function plotForecastEnvelope(data) {
     
         traces.push({
 
-            x: dailyBands.days,
+            x: dailyBands.dates,
         
             y: dailyBands.p90,
         
@@ -197,7 +244,7 @@ export function plotForecastEnvelope(data) {
         // Very Wet
         traces.push({
 
-            x: dailyBands.days,
+            x: dailyBands.dates,
         
             y: dailyBands.maximum,
         
@@ -217,7 +264,7 @@ export function plotForecastEnvelope(data) {
 
         traces.push({
 
-            x: forecast.days,
+            x: forecast.dates,
         
             y: forecastMax,
         
@@ -240,7 +287,7 @@ export function plotForecastEnvelope(data) {
 
         traces.push({
 
-            x: forecast.days,
+            x: forecast.dates,
         
             y: forecastMin,
         
@@ -265,7 +312,7 @@ export function plotForecastEnvelope(data) {
 
         traces.push({
 
-            x: forecast.days,
+            x: forecast.dates,
         
             y: forecastP25,
         
@@ -281,7 +328,7 @@ export function plotForecastEnvelope(data) {
 
         traces.push({
 
-            x: forecast.days,
+            x: forecast.dates,
         
             y: forecastP75,
         
@@ -297,7 +344,7 @@ export function plotForecastEnvelope(data) {
 
         traces.push({
 
-            x: forecast.days,
+            x: forecast.dates,
         
             y: forecastMedian,
         
@@ -326,7 +373,7 @@ export function plotForecastEnvelope(data) {
 
         traces.push({
 
-            x: currentCurve.days,
+            x: currentCurve.dates,
         
             y: currentCurve.cumulativeVolume,
         
@@ -385,12 +432,6 @@ export function plotForecastEnvelope(data) {
         
         );
 
-        // test
-
-        console.log(currentCurve.days.slice(0,5));
-
-console.log(dailyBands.days.slice(0,5));
-
-console.log(forecast.days.slice(0,5));
+      
 
     }

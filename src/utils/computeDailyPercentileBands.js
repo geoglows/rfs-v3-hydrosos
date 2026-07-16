@@ -1,34 +1,12 @@
 import { percentile } from "./percentile.js";
 
+export function computeDailyPercentileBands(curves) {
 
-export function computeDailyPercentileBands(
-    waterYearCurves
-) {
+    if (curves.length === 0) {
+        return null;
+    }
 
-    // Group all historical values by normalized calendar date
-    const dailyGroups = {};
-
-    waterYearCurves.forEach(curve => {
-
-        curve.days.forEach((date, i) => {
-
-            const key =
-                `${date.getUTCMonth()+1}-${date.getUTCDate()}`;
-
-            if (!dailyGroups[key]) {
-                dailyGroups[key] = [];
-            }
-
-            dailyGroups[key].push(
-                curve.cumulativeVolume[i]
-            );
-
-        });
-
-    });
-
-
-    const days = [];
+    const dates = curves[0].dates;
 
     const minimum = [];
     const p10 = [];
@@ -38,80 +16,44 @@ export function computeDailyPercentileBands(
     const p90 = [];
     const maximum = [];
 
+    for (let i = 0; i < dates.length; i++) {
 
-    // Build a normalized water-year calendar
-    const start = new Date(
-        Date.UTC(2000, 9, 1) // Oct 1, 2000
-    );
+        const values = curves
+            .map(curve => curve.cumulativeVolume[i])
+            .filter(v => v !== undefined)
+            .sort((a, b) => a - b);
 
-    const end = new Date(
-        Date.UTC(2001, 8, 30) // Sep 30, 2001
-    );
+        if (values.length === 0) {
 
+            minimum.push(null);
+            p10.push(null);
+            p25.push(null);
+            median.push(null);
+            p75.push(null);
+            p90.push(null);
+            maximum.push(null);
 
-    for (
-        let date = new Date(start);
-        date <= end;
-        date.setUTCDate(date.getUTCDate()+1)
-    ) {
-
-        const key =
-            `${date.getUTCMonth()+1}-${date.getUTCDate()}`;
-
-
-        const values =
-            dailyGroups[key];
-
-
-        if (!values || values.length === 0) {
             continue;
         }
 
+        minimum.push(values[0]);
 
-        days.push(
-            new Date(date)
-        );
+        p10.push(percentile(values, 10));
 
+        p25.push(percentile(values, 25));
 
-        values.sort(
-            (a,b)=>a-b
-        );
+        median.push(percentile(values, 50));
 
+        p75.push(percentile(values, 75));
 
-        minimum.push(
-            values[0]
-        );
+        p90.push(percentile(values, 90));
 
-        p10.push(
-            percentile(values,10)
-        );
-
-        p25.push(
-            percentile(values,25)
-        );
-
-        median.push(
-            percentile(values,50)
-        );
-
-        p75.push(
-            percentile(values,75)
-        );
-
-        p90.push(
-            percentile(values,90)
-        );
-
-        maximum.push(
-            values.at(-1)
-        );
-
+        maximum.push(values.at(-1));
     }
-
 
     return {
 
-        days,
+        dates,
 
         minimum,
 

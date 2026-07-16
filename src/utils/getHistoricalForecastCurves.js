@@ -1,77 +1,48 @@
 export function getHistoricalForecastCurves(
-    waterYearCurves,
-    currentCurve,
-    monthsAhead = 3
+    historicalCurves,
+    currentCurve
 ) {
 
-    // Today's normalized position on the water year axis
     const today = new Date();
 
-    const startDate =
-    currentCurve.days.at(-1);
-    
+    // Find today's position in the rolling window
+    const startIndex = currentCurve.dates.findIndex(
+        d => d >= today
+    );
 
-    // Three months later on the same normalized axis
-    const endDate = new Date(startDate);
-    endDate.setUTCMonth(endDate.getUTCMonth() + monthsAhead);
+    if (startIndex === -1) {
+        return [];
+    }
 
-    return waterYearCurves
+    return historicalCurves
         .map(curve => {
 
-            const startIndex = curve.days.findIndex(
-                d => d.getTime() === startDate.getTime()
-            );
-
-            if (startIndex === -1) {
-                return null;
-            }
-
-            let endIndex = curve.days.findIndex(
-                d => d.getTime() >= endDate.getTime()
-            );
-
-            // If the end date isn't found (rare edge case),
-            // just use the end of the water year.
-            if (endIndex === -1) {
-                endIndex = curve.days.length - 1;
-            }
-
-            const days = curve.days.slice(
-                startIndex,
-                endIndex + 1
-            );
-
-            const startVolume =
-                curve.cumulativeVolume[startIndex];
+            const dates = curve.dates.slice(startIndex);
 
             const cumulativeVolume =
-                curve.cumulativeVolume.slice(
-                    startIndex,
-                    endIndex + 1
-                );
+                curve.cumulativeVolume.slice(startIndex);
 
-            // NEW: Convert to cumulative increments
+            const startVolume = cumulativeVolume[0];
+
             const incrementalVolume =
                 cumulativeVolume.map(
-                    volume => volume - startVolume
+                    v => v - startVolume
                 );
 
             return {
 
-                waterYear: curve.waterYear,
+                year: curve.year,
 
-                days,
+                dates,
 
                 startVolume,
 
-                endVolume:
-                    cumulativeVolume.at(-1),
+                endVolume: cumulativeVolume.at(-1),
 
                 incrementalVolume
 
             };
 
-        })
-        .filter(curve => curve !== null);
+        });
 
 }

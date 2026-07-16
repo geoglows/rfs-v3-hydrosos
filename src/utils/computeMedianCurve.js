@@ -2,36 +2,40 @@ import { percentile } from "./percentile.js";
 
 export function computeMedianCurve(curves) {
 
-    const maxLength = Math.max(
-        ...curves.map(
-            c => c.cumulativeVolume.length
-        )
+    if (!curves || curves.length === 0) {
+
+        return null;
+
+    }
+
+    // Use the shortest curve so leap years don't cause indexing issues
+    const n = Math.min(
+        ...curves.map(c => c.cumulativeVolume.length)
     );
 
-    const days = [];
+    const dates = curves[0].dates.slice(0, n);
+
     const cumulativeVolume = [];
 
-    for (let i = 0; i < maxLength; i++) {
+    for (let i = 0; i < n; i++) {
 
         const values = curves
-            .map(c => c.cumulativeVolume[i])
-            .filter(v => v !== undefined);
-
-        if (values.length === 0) continue;
-
-        const date = new Date(
-            Date.UTC(2000, 9, 1 + i)
-        );
-
-        days.push(date);
+            .map(curve => curve.cumulativeVolume[i])
+            .filter(v => v !== undefined)
+            .sort((a, b) => a - b);
 
         cumulativeVolume.push(
             percentile(values, 50)
         );
+
     }
 
     return {
-        days,
+
+        dates,
+
         cumulativeVolume
+
     };
+
 }

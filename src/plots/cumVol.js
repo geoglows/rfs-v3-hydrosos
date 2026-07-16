@@ -1,5 +1,5 @@
 import Plotly from "plotly.js-dist-min";
-
+import { computeRollingWindowCurves } from "../utils/computeRollingWindowCurves";
 import { buildRecords } from "../utils/buildRecords";
 import { computeWaterYearCurves } from "../utils/waterYear";
 import { computeMedianCurve } from "../utils/computeMedianCurve";
@@ -7,13 +7,48 @@ import { computeMedianCurve } from "../utils/computeMedianCurve";
 export function plotCumulativeVolume(data) {
 
     const records = buildRecords(data);
+    console.log(records[0])
 
-    const waterYearCurves =
-        computeWaterYearCurves(records);
+    const curves =
+        computeRollingWindowCurves(records);
 
-    const traces = waterYearCurves.map(curve => ({
+        const cumulativeCurves = curves.map(curve => {
 
-        x: curve.days,
+            let runningTotal = 0;
+        
+            return {
+        
+                year: curve.year,
+        
+                dates: curve.referenceDates,
+        
+                cumulativeVolume: curve.records.map(record => {
+        
+                    runningTotal += record.volume;
+        
+                    return runningTotal;
+        
+                })
+        
+            };
+        
+        });
+
+        console.log(
+            cumulativeCurves.map(c => c.dates.length)
+        );
+
+    console.log(curves[0].records.length);
+
+    console.log(curves[0].records[0].date);
+
+    console.log(
+    curves[0].records.at(-1).date
+);
+
+    const traces = cumulativeCurves.map(curve => ({
+
+        x: curve.dates,
 
         y: curve.cumulativeVolume.map(
             volume => volume / 1e9
@@ -39,16 +74,16 @@ const currentWaterYear =
         ? today.getUTCFullYear() + 1
         : today.getUTCFullYear();
 
-const recentCurves = waterYearCurves
-    .filter(curve => curve.waterYear < currentWaterYear) // exclude current incomplete WY
-    .sort((a, b) => a.waterYear - b.waterYear)
+const recentCurves = cumulativeCurves
+    .filter(curve => curve.year < today.getUTCFullYear()) // exclude current incomplete WY
+    .sort((a, b) => a.year - b.year)
     .slice(-30);
 
 const median = computeMedianCurve(recentCurves);
 
 traces.push({
 
-    x: median.days,
+    x: median.dates,
     y: median.cumulativeVolume.map(
         volume => volume / 1e9
     ),
@@ -64,15 +99,32 @@ traces.push({
 
 });
 
-        const currentCurve = waterYearCurves.find(
-            c => c.waterYear === currentWaterYear
+        const currentCurve = cumulativeCurves.find(
+            c => c.year === currentWaterYear
         );
+
+        console.log("Current water year:", currentWaterYear);
+
+console.log(
+    "Available years:",
+    cumulativeCurves.map(c => c.year)
+);
+
+console.log(
+    "Current curve:",
+    currentCurve
+);
+console.log(typeof cumulativeCurves.at(-1).year);
+console.log(typeof currentWaterYear);
+console.log(
+    cumulativeCurves.at(-1)
+);
 
         if (currentCurve) {
 
             traces.push({
         
-                x: currentCurve.days,
+                x: currentCurve.dates,
                 y: currentCurve.cumulativeVolume.map(
                     volume => volume / 1e9
                 ),
@@ -93,7 +145,7 @@ traces.push({
         const layout = {
 
             title: {
-                text: "Historical Cumulative Volume (Water Year)",
+                text: "Historical Cumulative Volume",
                 x: 0.5
             },
         
