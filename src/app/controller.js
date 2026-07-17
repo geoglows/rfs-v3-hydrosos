@@ -57,13 +57,21 @@ export async function initApp() {
       .getElementById("basin-modal")
       .classList.remove("hidden");
 
+      const modalContent = document.querySelector(".modal-content");
+      modalContent.scrollTop = 0;
+
+      // Reset accordion to all sections open
+      document
+      .querySelectorAll(".accordion-item")
+      .forEach(item => item.classList.add("active"));
+
     const props = feature.properties;
 
     const riverID =
       outletLookup[props.HYBAS_ID].riverID;
 
     document.getElementById("basin-info").innerHTML = `
-      <h3>Basin Information</h3>
+      <h2>Basin Information</h2>
       <p><strong>Hydrobasin ID:</strong> ${props.HYBAS_ID}</p>
       <p><strong>Outlet River ID:</strong> ${riverID}</p>
   `;
@@ -74,6 +82,7 @@ export async function initApp() {
 
       const data =
         await fetchRetrospective(riverID);
+
 
       plotCumulativeVolume(data);
 

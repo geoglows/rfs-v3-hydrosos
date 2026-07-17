@@ -113,6 +113,8 @@ html, body,
     background: rgba(0,0,0,0.15);
 
     z-index: 10000;
+
+    pointer-events: none;
 }
   
 .modal-content {
@@ -133,6 +135,8 @@ html, body,
 
   box-shadow: -8px 0 20px rgba(0,0,0,0.2);
 
+  pointer-events: auto;
+
 }
 
 .modal-content {
@@ -147,6 +151,20 @@ html, body,
 
   transform: translateX(0);
 
+}
+
+.accordion-title {
+
+  text-align: left;
+
+  flex-direction: column;
+
+  font-size: 1.2rem;
+
+}
+
+.accordion-arrow {
+  transition: transform 0.25s ease;
 }
 
 
@@ -178,6 +196,10 @@ html, body,
 
 .accordion-item.active .accordion-content {
   display: block;
+}
+
+.accordion-item.active .accordion-arrow {
+  transform: rotate(90deg);
 }
 
 .plot-description {

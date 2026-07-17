@@ -1,8 +1,6 @@
 import Plotly from "plotly.js-dist-min";
 
 import { buildRecords } from "../utils/buildRecords.js";
-import { computeWaterYearCurves } from "../utils/waterYear.js";
-import { getCurrentWaterYearCurve } from "../utils/getCurrentWaterYearCurve.js";
 import { getHistoricalForecastCurves } from "../utils/getHistoricalForecastCurves.js";
 import { computeForecastEnvelope } from "../utils/computeForecastEnvelope.js";
 import { computeDailyPercentileBands } from "../utils/computeDailyPercentileBands.js";
@@ -54,10 +52,6 @@ export function plotForecastEnvelope(data) {
     const lastObservedDate =
     currentCurve.dates[currentCurve.cumulativeVolume.length - 1];
 
-    console.log(
-        "Last observed:",
-        lastObservedDate
-    );
 
     const historicalForecasts =
     getHistoricalForecastCurves(
@@ -105,41 +99,6 @@ export function plotForecastEnvelope(data) {
             v => currentVolume + v
         );
 
-        // test
-
-        console.log(
-            "Current endpoint:",
-            currentCurve.dates.at(-1),
-            currentCurve.cumulativeVolume.at(-1)
-        );
-        
-        console.log(
-            "Forecast start:",
-            forecast.dates[0],
-            forecast.median[0]
-        );
-        console.log("Current curve dates:", currentCurve.dates.slice(0,5), currentCurve.dates.at(-5));
-
-        console.log("Bands dates:", dailyBands.dates.slice(0,5), dailyBands.dates.at(-5));
-        
-        console.log("Forecast dates:", forecast.dates.slice(0,5), forecast.dates.at(-5));
-        
-        console.log("Historical forecast example:", historicalForecasts[0].dates.slice(0,5));
-
-        console.log(
-            currentCurve.dates.length,
-            currentCurve.cumulativeVolume.length
-        );
-        
-        console.log(
-            historicalForecasts[0].dates.length,
-            historicalForecasts[0].incrementalVolume.length
-        );
-        
-        console.log(
-            forecast.dates.length,
-            forecast.median.length
-        );
 
         // plot
 

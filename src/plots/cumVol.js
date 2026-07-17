@@ -1,13 +1,11 @@
 import Plotly from "plotly.js-dist-min";
 import { computeRollingWindowCurves } from "../utils/computeRollingWindowCurves";
 import { buildRecords } from "../utils/buildRecords";
-import { computeWaterYearCurves } from "../utils/waterYear";
 import { computeMedianCurve } from "../utils/computeMedianCurve";
 
 export function plotCumulativeVolume(data) {
 
     const records = buildRecords(data);
-    console.log(records[0])
 
     const curves =
         computeRollingWindowCurves(records);
@@ -34,17 +32,7 @@ export function plotCumulativeVolume(data) {
         
         });
 
-        console.log(
-            cumulativeCurves.map(c => c.dates.length)
-        );
-
-    console.log(curves[0].records.length);
-
-    console.log(curves[0].records[0].date);
-
-    console.log(
-    curves[0].records.at(-1).date
-);
+        
 
     const traces = cumulativeCurves.map(curve => ({
 
@@ -102,23 +90,6 @@ traces.push({
         const currentCurve = cumulativeCurves.find(
             c => c.year === currentWaterYear
         );
-
-        console.log("Current water year:", currentWaterYear);
-
-console.log(
-    "Available years:",
-    cumulativeCurves.map(c => c.year)
-);
-
-console.log(
-    "Current curve:",
-    currentCurve
-);
-console.log(typeof cumulativeCurves.at(-1).year);
-console.log(typeof currentWaterYear);
-console.log(
-    cumulativeCurves.at(-1)
-);
 
         if (currentCurve) {
 
